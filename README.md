@@ -1,55 +1,67 @@
 ## serverreview-benchmark
 
-##### Download
+### 使用方法
 
-`curl -LsO git.io/bench.sh; chmod +x bench.sh`
+##### 系統資訊
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -info`
+##### I/O 測試
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -io`
+##### 執行iO、網速測試
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -a`
+##### CDN 測速 (200MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -cdn`
+#####  透過speedtest-cli測速
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -speed`
+##### 北美洲地區測速 (1.9GB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -northamercia`
+##### 亞洲地區測速 (2.8GB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -asia`
+##### 歐洲地區測速 (1.1GB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -europe`
+##### 全美國地區測速 (6.1GB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -usa`
+##### 美國西岸地區測速 (2.8GB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -westcoast`
+##### 中華民國地區測速 (900MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -taiwan`
+##### 新加坡地區測速 (800MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -singapore`
+##### 日本地區測速 (600MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -japan`
+##### 1GB檔案測速 (16GB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -1gbps`
 
-##### Usage
+### Usage
 
-`./bench.sh` `Arguments` `Parameters (Optional)`
+##### System Information
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -info`
+##### I/O Test
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -io`
+##### All In One Command
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -a`
+##### CDN Download (200MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -cdn`
+#####  Test from speedtest.net using speedtest cli
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -speed`
+##### North America Download (800MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -northamercia`
+##### Asia Download (900MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -asia`
+##### Europe Download (900MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -europe`
+##### USA Download (900MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -usa`
+##### USA Westcoast Download (900MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -westcoast`
+##### R.O.C. Download (900MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -taiwan`
+##### Singapore Download (900MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -singapore`
+##### Japan Download (900MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -japan`
+##### Gigbit files Download (900MB)
+`wget https://git.io/JkJof -O bench.sh; sh bench.sh -1gbps`
 
-Example: `./bench.sh -b share`
-
-##### Arguments
-
-`-info` # System Information
-
-`-io` # I/O Test
-
-`-cdn` # CDN Download (200MB)
-
-`-northamerica` # North America Download (800MB)
-
-`-europe` # Europe Download (900MB)
-
-`-asia` # Asia Download (400MB)
-
-`-b` # System Info + CDN Download + I/O Test
-
-`-a` # All In One Command
-
-`-speed` # Test from speedtest.net using speedtest cli
-
-`-help` # Show help
-
-`-about` # Show about
-
-##### Parameters
-
-`share`
-
-Ex: `./bench.sh -cdn share haste`
-
-Available option:
-
-    `ubuntu` # upload results to ubuntu paste (default)
-
-    `haste` # upload results to hastebin
-
-    `clbin` # upload results to clbin
-
-    `ptpb` # upload results to ptpb
-
-##### _Credits_
+## _Credits_
 
 Thanks to `@camarg` for the the original script. Thanks to `@dmmcintyre3` for the modified version. Thanks `@Hidden_Refuge` for update bench-sh-2.
