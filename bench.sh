@@ -9,8 +9,9 @@ about () {
 	echo "  ========================================================= "
 	echo "  \             Serverreview Benchmark Script             / "
 	echo "  \       Basic system info, I/O test and speedtest       / "
-	echo "  \               V 3.0.3  (13 Sep 2019)                  / "
+	echo "  \               V 3.0.5 (2020-11-09)                  / "
 	echo "  \             Created by Sayem Chowdhury                / "
+	echo "  \             Modify by Kevin Tseng                / "
 	echo "  ========================================================= "
 	echo ""
 	echo "  This script is based on bench.sh by camarg from akamaras.com"
@@ -83,8 +84,8 @@ trap cancel SIGINT
 systeminfo () {
 	# Systeminfo
 	echo "" | tee -a $log
-	echo " $(tput setaf 6)## System Information$(tput sgr0)"
-	echo " ## System Information" >> $log
+	echo " $(tput setaf 6)### 系統資訊$(tput sgr0)"
+	echo " ### 系統資訊" >> $log
 	echo "" | tee -a $log
 
 	# OS Information (Name)
@@ -161,8 +162,8 @@ systeminfo () {
 	sleep 0.1
 
 	# Hostname
-	echo " Hostname    : $(hostname)" | tee -a $log
-	sleep 0.1
+	# echo " Hostname    : $(hostname)" | tee -a $log
+	# sleep 0.1
 
 	# CPU Model Name
 	cpumodel=$( awk -F: '/model name/ {name=$2} END {print name}' /proc/cpuinfo )
@@ -203,6 +204,11 @@ systeminfo () {
 	hdd=$( df -h --total --local -x tmpfs | grep 'total' | awk '{print $2}' )B
 	hddfree=$( df -h --total | grep 'total' | awk '{print $5}' )
 	echo " Total Space : $hdd ($hddfree used)" | tee -a $log
+	sleep 0.1
+
+	# TCP Congestion Control
+	tcpctrl=$( sysctl net.ipv4.tcp_congestion_control | awk -F ' ' '{print $3}' )
+	echo " TCP CC      : $tcpctrl" | tee -a $log
 	sleep 0.1
 
 	# Uptime
@@ -274,7 +280,7 @@ speed() {
 # 2 location (200MB)
 cdnspeedtest () {
 	echo "" | tee -a $log
-	echostyle "## CDN Speedtest"
+	echostyle "### CDN測速"
 	echo "" | tee -a $log
 	speed "CacheFly :" "http://cachefly.cachefly.net/100mb.test"
 
@@ -284,7 +290,7 @@ cdnspeedtest () {
 	DRIVE="drive.google.com"
 	FILE_ID="0B1MVW1mFO2zmdGhyaUJESWROQkE"
 
-	printf " Gdrive   :"  | tee -a $log
+	printf " Google Drive   :"  | tee -a $log
 	curl -c $TMP_COOKIES -o $TMP_FILE -s "https://$DRIVE/uc?id=$FILE_ID&export=download"
 	D_ID=$( grep "confirm=" < $TMP_FILE | awk -F "confirm=" '{ print $NF }' | awk -F "&amp" '{ print $1 }' )
 	C_DL=$( curl -m 4 -Lb $TMP_COOKIES -w '%{speed_download}\n' -o $NULL \
@@ -293,62 +299,288 @@ cdnspeedtest () {
 	echo "" | tee -a $log
 }
 
-# 10 location (1GB)
+# 19 location (1.9GB)
 northamerciaspeedtest () {
 	echo "" | tee -a $log
-	echostyle "## North America Speedtest"
+	echostyle "### 北美洲地區測速"
 	echo "" | tee -a $log
-	speed "Softlayer, Washington, USA :" "http://speedtest.wdc04.softlayer.com/downloads/test100.zip"
-	speed "SoftLayer, San Jose, USA   :" "http://speedtest.sjc01.softlayer.com/downloads/test100.zip"
-	speed "SoftLayer, Dallas, USA     :" "http://speedtest.dal01.softlayer.com/downloads/test100.zip"
-	speed "Vultr, New Jersey, USA     :" "http://nj-us-ping.vultr.com/vultr.com.100MB.bin"
-	speed "Vultr, Seattle, USA        :" "http://wa-us-ping.vultr.com/vultr.com.100MB.bin"
-	speed "Vultr, Dallas, USA         :" "http://tx-us-ping.vultr.com/vultr.com.100MB.bin"
-	speed "Vultr, Los Angeles, USA    :" "https://lax-ca-us-ping.vultr.com/vultr.com.100MB.bin"
-	speed "Ramnode, New York, USA     :" "http://lg.nyc.ramnode.com/static/100MB.test"
-	speed "Ramnode, Atlanta, USA      :" "http://lg.atl.ramnode.com/static/100MB.test"
-	speed "OVH, Beauharnois, Canada   :" "http://bhs.proof.ovh.net/files/100Mio.dat"
-	echo ""
+	speed "Vultr, US, CA, LAX         :" "http://lax-ca-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, US, WA, Seattle     :" "http://wa-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, US, TX, Dallas      :" "http://tx-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, US, IL, Chicago     :" "http://il-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, US, NJ, New Jersey  :" "http://nj-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, US, GA, Atlanta     :" "http://ga-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, US, FL, Miami       :" "http://fl-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "RamNode, CA, LAX           :" "http://lg.la.ramnode.com/static/100MB.test"
+	speed "RamNode, WA, Seattle       :" "http://lg.sea.ramnode.com/static/100MB.test"
+	speed "RamNode, GA, Atlanta       :" "http://lg.atl.ramnode.com/static/100MB.test"
+	speed "RamNode, NY, NYC           :" "http://lg.nyc.ramnode.com/static/100MB.test"
+	speed "Linode, US, CA, Fremont    :" "http://speedtest.fremont.linode.com/100MB-fremont.bin"
+	speed "Linode, US, TX, Dallas     :" "http://speedtest.dallas.linode.com/100MB-dallas.bin"
+	speed "Linode, US, NJ, Newark     :" "http://speedtest.newark.linode.com/100MB-newark.bin"
+	speed "Softlayer, US, CA, San Jose:" "http://speedtest.sjc01.softlayer.com/downloads/test100.zip"
+	speed "Softlayer, US, WA, Seattle :" "http://speedtest.sea01.softlayer.com/downloads/test100.zip"
+	speed "Softlayer, CA, QC, Montreal:" "http://speedtest.mon01.softlayer.com/downloads/test100.zip"
+	speed "OVH, CA, QC, Beauharnois   :" "http://bhs.proof.ovh.net/files/100Mb.dat"
+	speed "Vultr, CA, ON, Toronto     :" "http://tor-ca-ping.vultr.com/vultr.com.100MB.bin"
+	echo "" | tee -a $log
 }
 
-# 9 location (900MB)
+# 11 location (1.1GB)
 europespeedtest () {
 	echo "" | tee -a $log
-	echostyle "## Europe Speedtest"
+	echostyle "### 歐洲地區測速"
 	echo "" | tee -a $log
-	speed "Vultr, London, UK            :" "http://lon-gb-ping.vultr.com/vultr.com.100MB.bin"
-	speed "LeaseWeb, Frankfurt, Germany :" "http://mirror.de.leaseweb.net/speedtest/100mb.bin"
-	speed "Hetzner, Germany             :" "https://speed.hetzner.de/100MB.bin"
-	speed "Ramnode, Alblasserdam, NL    :" "http://lg.nl.ramnode.com/static/100MB.test"
-	speed "Vultr, Amsterdam, NL         :" "http://ams-nl-ping.vultr.com/vultr.com.100MB.bin"
-	speed "EDIS, Stockholm, Sweden      :" "http://se.edis.at/100MB.test"
-	speed "OVH, Roubaix, France         :" "http://rbx.proof.ovh.net/files/100Mio.dat"
-	speed "Online, France               :" "http://ping.online.net/100Mo.dat"
-	speed "Prometeus, Milan, Italy      :" "http://mirrors.prometeus.net/test/test100.bin"
+	speed "Vultr, UK, London          :" "http://lon-gb-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, DE, Frankfurt       :" "http://fra-de-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, NL, Amsterdam       :" "http://ams-nl-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Linode, UK, London         :" "http://speedtest.london.linode.com/100MB-london.bin"
+	speed "Linode, DE, Frankfurt      :" "http://speedtest.frankfurt.linode.com/100MB-frankfurt.bin"
+	speed "Psychz, UK, London         :" "https://lg.lon.psychz.net/200MB.test"
+	speed "Psychz, NL, Amsterdam      :" "http://172.107.95.246/100.mb"
+	speed "OVH, FR, Roubaix           :" "http://rbx.proof.ovh.net/files/100Mb.dat"
+	speed "Online.net, FR             :" "http://ping.online.net/100Mb.dat"
+	speed "Hetzner, DE                :" "https://speed.hetzner.de/100MB.bin"
+	speed "Rackspace, UK, London      :" "http://sandbox.lon3.rackspace.net/128MB.test"
+	#speed "DataCamp, AT, Vienna       :" "http://vie.download.datapacket.com/100mb.bin"
+	#speed "DataCamp, CZ, Prague       :" "http://war.download.datapacket.com/100mb.bin"
+	#speed "DataCamp, ES, Madrid       :" "http://mad.download.datapacket.com/100mb.bin"
+	#speed "DataCamp, FR, Paris        :" "http://par.download.datapacket.com/100mb.bin"
+	#speed "DataCamp, PL, Warsaw       :" "http://war.download.datapacket.com/100mb.bin"
+	#speed "DataCamp, SE, Stockholm    :" "http://sto.download.datapacket.com/100mb.bin"
 	echo "" | tee -a $log
 }
 
-# 4 location (200MB)
+# 6 location (0.6GB)
 exoticpeedtest () {
 	echo "" | tee -a $log
-	echostyle "## Exotic Speedtest"
+	echostyle "### 大洋洲地區測速"
 	echo "" | tee -a $log
-	speed "Sydney, Australia     :" "https://syd-au-ping.vultr.com/vultr.com.100MB.bin"
-	speed "Lagoon, New Caledonia :" "http://mirror.lagoon.nc/speedtestfiles/test50M.bin"
-	speed "Hosteasy, Moldova     :" "http://mirror.as43289.net/speedtest/100mb.bin"
-	speed "Prima, Argentina      :" "http://sftp.fibertel.com.ar/services/file-50MB.img"
+	speed "Vultr, AU, Sydney          :" "https://syd-au-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Softlayer, AU, Sydney      :" "http://speedtest.syd01.softlayer.com/downloads/test100.zip"
+	speed "Leaseweb, AU, Sydney       :" "http://mirror.syd10.au.leaseweb.net/speedtest/100mb.bin"
+	speed "OVH, AU, Sydney            :" "http://speedtest-syd.apac-tools.ovh/files/100Mb.dat"
+	speed "Psychz, AU, Sydney         :" "http://103.126.137.120/100.mb"
+	speed "Rackspace, AU, Sydney      :" "http://sandbox.syd2.rackspace.net/128MB.test"
 	echo "" | tee -a $log
 }
 
-# 4 location (400MB)
+# 27 location (2.8GB)
 asiaspeedtest () {
 	echo "" | tee -a $log
-	echostyle "## Asia Speedtest"
+	echostyle "### 亞洲地區測速"
 	echo "" | tee -a $log
-	speed "SoftLayer, Singapore :" "http://speedtest.sng01.softlayer.com/downloads/test100.zip"
-	speed "Linode, Tokyo, Japan :" "http://speedtest.tokyo2.linode.com/100MB-tokyo2.bin"
-	speed "Linode, Singapore    :" "http://speedtest.singapore.linode.com/100MB-singapore.bin"
-	speed "Vultr, Tokyo, Japan  :" "http://hnd-jp-ping.vultr.com/vultr.com.100MB.bin"
+	speed "中華電信, TW, 臺北市       :" "http://http.speed.hinet.net/test_100m.zip"
+	speed "國網中心, TW, 新竹市       :" "http://free.nchc.org.tw/parrot/misc/100MB.bin"
+	speed "Psychz, TW, 臺北市         :" "https://lg.tw.psychz.net/200MB.test"
+	speed "Psychz, JP, Tokyo          :" "http://172.107.231.230/100.mb"
+	speed "Psychz, KR, Seoul          :" "http://172.107.194.22/100.mb"
+	speed "Psychz, IN, Mumbai         :" "http://103.78.121.58/100.mb"
+	speed "Vultr, JP, Tokyo           :" "http://hnd-jp-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, KR, Seoul           :" "http://sel-kor-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, Singapore           :" "http://sgp-ping.vultr.com/vultr.com.100MB.bin"
+	speed "DataCamp, JP, Tokyo        :" "http://tyo.download.datapacket.com/100mb.bin"
+	speed "DataCamp, Hong Kong        :" "http://hkg.download.datapacket.com/100mb.bin"
+	speed "DataCamp, Singapore        :" "http://sgp.download.datapacket.com/100mb.bin"
+	speed "Softlayer, JP, Tokyo       :" "http://speedtest.tok02.softlayer.com/downloads/test100.zip"
+	speed "Softlayer, Hong Kong       :" "http://speedtest.hkg02.softlayer.com/downloads/test100.zip"
+	speed "Softlayer, Singapore       :" "http://speedtest.sng01.softlayer.com/downloads/test100.zip"
+	speed "Linode, JP, Tokyo          :" "http://speedtest.tokyo2.linode.com/100MB-tokyo2.bin"
+	speed "Linode, Singapore          :" "http://speedtest.singapore.linode.com/100MB-singapore.bin"
+	speed "Linode, IN, Mumbai         :" "http://speedtest.mumbai1.linode.com/100MB-mumbai.bin"
+	speed "Leaseweb, Hong Kong        :" "http://mirror.hk.leaseweb.net/speedtest/100mb.bin"
+	speed "Leaseweb, Singapore        :" "http://mirror.sg.leaseweb.net/speedtest/100mb.bin"
+	speed "HostUS, Hong Kong          :" "https://hk-lg.hostus.us/100MB.test"
+	speed "HostUS, Singapore          :" "https://sgp-lg.hostus.us/100MB.test"
+	speed "Nexus Bytes, JP, Tokyo     :" "http://lgjp.nexusbytes.com/100MB.test"
+	speed "Nexus Bytes, Singapore     :" "http://lgsg.nexusbytes.com/100MB.test"
+	speed "HostHatch, Hong Kong       :" "http://103.73.67.192/100.mb"
+	speed "Rackspace, Hong Kong       :" "http://sandbox.hkg1.rackspace.net/128MB.test"
+	speed "OVH, Singapore             :" "http://speedtest-sgp.apac-tools.ovh/files/100Mb.dat"
+	echo "" | tee -a $log
+}
+
+# 61 location (6.1GB)
+usaspeedtest () {
+	echo "" | tee -a $log
+	echostyle "### 全美國地區測速"
+	echo "" | tee -a $log
+	speed "Vultr, CA, LAX             :" "http://lax-ca-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, WA, Seattle         :" "http://wa-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, TX, Dallas          :" "http://tx-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, IL, Chicago         :" "http://il-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, GA, Atlanta         :" "http://ga-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, NJ, New Jersey      :" "http://nj-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "DigitalOcean, CA, SFO 01   :" "http://speedtest-sfo1.digitalocean.com/100mb.test"
+	speed "DigitalOcean, CA, SFO 02   :" "http://speedtest-sfo2.digitalocean.com/100mb.test"
+	speed "DigitalOcean, CA, SFO 03   :" "http://speedtest-sfo3.digitalocean.com/100mb.test"
+	speed "DigitalOcean, NY, NYC 01   :" "http://speedtest-nyc1.digitalocean.com/100mb.test"
+	speed "DigitalOcean, NY, NYC 02   :" "http://speedtest-nyc2.digitalocean.com/100mb.test"
+	speed "DigitalOcean, NY, NYC 03   :" "http://speedtest-nyc3.digitalocean.com/100mb.test"
+	speed "DataCamp, CA, LAX          :" "http://lax.download.datapacket.com/100mb.bin"
+	#speed "DataCamp, WA, Seattle      :" "http://sea.download.datapacket.com/100mb.bin"
+	speed "DataCamp, CO, Denver       :" "http://den.download.datapacket.com/100mb.bin"
+	speed "DataCamp, TX, Dallas       :" "http://dal.download.datapacket.com/100mb.bin"
+	speed "DataCamp, IL, Chicago      :" "http://chi.download.datapacket.com/100mb.bin"
+	speed "DataCamp, NY, NYC          :" "http://nyc.download.datapacket.com/100mb.bin"
+	speed "DataCamp, FL, Miami        :" "http://mia.download.datapacket.com/100mb.bin"
+	speed "Linode, CA, Fremont        :" "http://speedtest.fremont.linode.com/100MB-fremont.bin"
+	speed "Linode, TX, Dallas         :" "http://speedtest.dallas.linode.com/100MB-dallas.bin"
+	speed "Linode, GA, Atlanta        :" "http://speedtest.atlanta.linode.com/100MB-atlanta.bin"
+	speed "Linode, NJ, Newark         :" "http://speedtest.newark.linode.com/100MB-newark.bin"
+	speed "RamNode, CA, LAX           :" "http://lg.la.ramnode.com/static/100MB.test"
+	speed "RamNode, WA, Seattle       :" "http://lg.sea.ramnode.com/static/100MB.test"
+	speed "RamNode, GA, Atlanta       :" "http://lg.atl.ramnode.com/static/100MB.test"
+	speed "RamNode, NY, NYC           :" "http://lg.nyc.ramnode.com/static/100MB.test"
+	speed "Softlayer, CA, San Jose    :" "http://speedtest.sjc01.softlayer.com/downloads/test100.zip"
+	speed "Softlayer, WA, Seattle     :" "http://speedtest.sea01.softlayer.com/downloads/test100.zip"
+	speed "Softlayer, TX, Houston     :" "http://speedtest.hou02.softlayer.com/downloads/test100.zip"
+	speed "Leaseweb, CA, SFO          :" "http://mirror.sfo12.us.leaseweb.net/speedtest/100mb.bin"
+	speed "Leaseweb, TX, Dallas       :" "http://mirror.dal10.us.leaseweb.net/speedtest/100mb.bin"
+	speed "Leaseweb, Washington DC    :" "http://mirror.wdc1.us.leaseweb.net/speedtest/1000mb.bin"
+	speed "Psychz, CA, LAX            :" "http://23.91.21.131/100.mb"
+	speed "Psychz, TX, Dallas         :" "http://45.35.221.50/100.mb"
+	speed "Psychz, IL, Chicago        :" "http://172.107.202.151/100.mb"
+	speed "HostUS, CA, LAX 01         :" "https://la-lg.hostus.us/100MB.test"
+	#speed "HostUS, CA, LAX 02         :" "http://la02-lg.hostus.us/100MB.file"
+	speed "HostUS, CA, LAX 03         :" "http://la03-lg.hostus.us/100MB.tf"
+	speed "HostUS, TX, DAL 01         :" "http://dal-lg.hostus.us/100MB.test"
+	speed "HostUS, TX, DAL 02         :" "http://dal02-lg.hostus.us/100MB.test"
+	speed "HostUS, GA, Atlanta        :" "https://atl-lg.hostus.us/100MB.test"
+	speed "HostUS, NC, Charlotte      :" "http://clt-lg.hostus.us/100MB.test"
+	speed "HostUS, Washington DC      :" "http://wdc-lg.hostus.us/100MB.test"
+	speed "Rackspace, TX, Dallas      :" "http://sandbox.dfw1.rackspace.net/128MB.test"
+	speed "Rackspace, IL, Chicago     :" "http://sandbox.ord1.rackspace.net/128MB.test"
+	speed "Rackspace, Washington DC   :" "http://sandbox.iad3.rackspace.net/256MB.test"
+	speed "HostHatch, CA, LAX         :" "http://31.220.30.5/100.mb"
+	speed "HostHatch, IL, Chicago     :" "http://45.132.73.140/100.mb"
+	speed "HostHatch, NJ, Secaucus    :" "http://185.213.26.112/100.mb"
+	speed "Nexus Bytes, CA, LAX       :" "http://lgla.nexusbytes.com/100MB.test"
+	speed "Nexus Bytes, NY, NYC       :" "http://lgny.nexusbytes.com/100MB.test"
+	speed "Nexus Bytes, FL, Miami     :" "http://lgmi.nexusbytes.com/100MB.test"
+	speed "UltraVPS.eu, CA, LAX       :" "http://lg.lax.us.ultravps.eu/100MB.test"
+	speed "UltraVPS.eu, TX, Dallas    :" "http://lg.dal.us.ultravps.eu/100MB.test"
+	speed "BuyVM, NV, Las Vegas       :" "https://speedtest.lv.buyvm.net/100MB.test"
+	speed "BuyVM, NY, NYC             :" "https://speedtest.ny.buyvm.net/100MB.test"
+	speed "Tier.Net, OR, Bend         :" "http://lg.or.tier.net/100MB.test"
+	speed "1GServers, AZ, Phoenix     :" "http://speedtest.1gservers.com/100MB.test"
+	speed "Pivo, AZ, Phoenix          :" "http://162.216.242.209/100.test"
+	speed "Choopa, NY, New Jersey     :" "http://speedtest.choopa.net/100MBtest.bin"
+	echo "" | tee -a $log
+}
+
+# 27 location (2.8GB)
+usawestcoastspeedtest () {
+	echo "" | tee -a $log
+	echostyle "### 美國西岸地區測速"
+	echo "" | tee -a $log
+	speed "Vultr, CA, LAX             :" "http://lax-ca-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, CA, Silicon Valley  :" "https://sjo-ca-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "Vultr, WA, Seattle         :" "http://wa-us-ping.vultr.com/vultr.com.100MB.bin"
+	speed "DigitalOcean, CA, SFO 01   :" "http://speedtest-sfo1.digitalocean.com/100mb.test"
+	speed "DigitalOcean, CA, SFO 02   :" "http://speedtest-sfo2.digitalocean.com/100mb.test"
+	speed "DigitalOcean, CA, SFO 03   :" "http://speedtest-sfo3.digitalocean.com/100mb.test"
+	speed "Softlayer, CA, San Jose 01 :" "http://speedtest.sjc01.softlayer.com/downloads/test100.zip"
+	speed "Softlayer, CA, San Jose 03 :" "http://speedtest.sjc03.softlayer.com/downloads/test100.zip"
+	speed "Softlayer, WA, Seattle     :" "http://speedtest.sea01.softlayer.com/downloads/test100.zip"
+	speed "ColoCrossing, CA, LAX      :" "http://lg.la.colocrossing.com/100MB.test"
+	speed "ColoCrossing, CA, San Jose :" "http://lg.sj.colocrossing.com/100MB.test"
+	speed "ColoCrossing, WA, Seattle  :" "http://lg.sea.colocrossing.com/100MB.test"
+	speed "HostUS, CA, LAX 01         :" "https://la-lg.hostus.us/100MB.test"
+	#speed "HostUS, CA, LAX 02         :" "http://la02-lg.hostus.us/100MB.file"
+	speed "HostUS, CA, LAX 03         :" "http://la03-lg.hostus.us/100MB.tf"
+	speed "RamNode, CA, LAX           :" "http://lg.la.ramnode.com/static/100MB.test"
+	speed "RamNode, WA, Seattle       :" "http://lg.sea.ramnode.com/static/100MB.test"
+	speed "DataCamp, CA, LAX          :" "http://lax.download.datapacket.com/100mb.bin"
+	#speed "DataCamp, WA, Seattle      :" "http://sea.download.datapacket.com/100mb.bin"
+	speed "Leaseweb, CA, SFO          :" "http://mirror.sfo12.us.leaseweb.net/speedtest/100mb.bin"
+	speed "Linode, CA, Fremont        :" "http://speedtest.fremont.linode.com/100MB-fremont.bin"
+	speed "HostHatch, CA, LAX         :" "http://31.220.30.5/100.mb"
+	speed "Psychz, CA, LAX            :" "https://lg.lax.psychz.net/200MB.test"
+	speed "IntoVPS, CA, Fremont       :" "https://lg.fre.hosterion.com/100MB.test"
+	speed "UltraVPS.eu, CA, LAX       :" "http://lg.lax.us.ultravps.eu/100MB.test"
+	speed "Nexus Bytes, CA, LAX       :" "http://lgla.nexusbytes.com/100MB.test"
+	speed "Tier.Net, OR, Bend         :" "http://lg.or.tier.net/100MB.test"
+	echo "" | tee -a $log
+}
+
+# 16 location (16GB)
+gigabitspeedtest () {
+	echo "" | tee -a $log
+	echostyle "### 1GB檔案測速"
+	echo "" | tee -a $log
+	speed "Vultr, CA, LAX             :" "http://lax-ca-us-ping.vultr.com/vultr.com.1000MB.bin"
+	speed "Vultr, CA, Silicon Valley  :" "http://sjo-ca-us-ping.vultr.com/vultr.com.1000MB.bin"
+	speed "Vultr, WA, Seattle         :" "http://wa-us-ping.vultr.com/vultr.com.1000MB.bin"
+	speed "DigitalOcean, CA, SFO 01   :" "http://speedtest-sfo1.digitalocean.com/1gb.test"
+	speed "DigitalOcean, CA, SFO 02   :" "http://speedtest-sfo2.digitalocean.com/1gb.test"
+	speed "DigitalOcean, CA, SFO 03   :" "http://speedtest-sfo3.digitalocean.com/1gb.test"
+	speed "ColoCrossing, CA, LAX      :" "http://lg.la.colocrossing.com/1000MB.test"
+	speed "ColoCrossing, CA, San Jose :" "http://lg.sj.colocrossing.com/1000MB.test"
+	speed "ColoCrossing, WA, Seattle  :" "http://lg.sea.colocrossing.com/1000MB.test"
+	speed "RamNode, CA, LAX           :" "http://lg.la.ramnode.com/static/1000MB.test"
+	speed "RamNode, WA, Seattle       :" "http://lg.sea.ramnode.com/static/1000MB.test"
+	speed "DataCamp, CA, LAX          :" "http://lax.download.datapacket.com/1000mb.bin"
+	speed "Leaseweb, CA, SFO          :" "http://mirror.sfo12.us.leaseweb.net/speedtest/1000mb.bin"
+	speed "HostHatch, CA, LAX         :" "http://31.220.30.5/1000.mb"
+	speed "Nexus Bytes, CA, LAX       :" "http://lgla.nexusbytes.com/1024MB.test"
+	speed "Tier.Net, OR, Bend         :" "http://lg.or.tier.net/1024MB.test"
+	echo "" | tee -a $log
+}
+
+# 8 location (0.9GB)
+taiwanspeedtest () {
+	echo "" | tee -a $log
+	echostyle "### 中華民國地區測速"
+	echo "" | tee -a $log
+	speed "中華電信, 臺北市           :" "http://http.speed.hinet.net/test_100m.zip"
+	speed "國網中心, 新竹市           :" "http://free.nchc.org.tw/parrot/misc/100MB.bin"
+	speed "Psychz, TW, 臺北市         :" "https://lg.tw.psychz.net/200MB.test"
+	speed "HostingInside, 臺北市      :" "http://103.98.74.47/100.mb"
+	speed "Serverfield, 臺北市        :" "http://lg.tpe.serverfield.com.tw/100MB.test"
+	speed "威達雲端電訊, 臺中市       :" "http://speed.vee.com.tw/100mb.bin"
+	speed "台灣之星, 臺北市           :" "http://tstarkh1.vibo.net.tw/speedtest/100M.jpg"
+	speed "台灣大寬頻, 臺北市         :" "http://speed.anet.net.tw/100M.dat"
+	echo "" | tee -a $log
+}
+
+# 8 location (0.8GB)
+singaporespeedtest () {
+	echo "" | tee -a $log
+	echostyle "### 新加坡地區測速"
+	echo "" | tee -a $log
+	speed "Vultr, Singapore           :" "http://sgp-ping.vultr.com/vultr.com.100MB.bin"
+	speed "DataCamp, Singapore        :" "http://sgp.download.datapacket.com/100mb.bin"
+	speed "Softlayer, Singapore       :" "http://speedtest.sng01.softlayer.com/downloads/test100.zip"
+	speed "Linode, Singapore          :" "http://speedtest.singapore.linode.com/100MB-singapore.bin"
+	speed "Leaseweb, Singapore        :" "http://mirror.sg.leaseweb.net/speedtest/100mb.bin"
+	speed "HostUS, Singapore          :" "https://sgp-lg.hostus.us/100MB.test"
+	speed "Nexus Bytes, Singapore     :" "http://lgsg.nexusbytes.com/100MB.test"
+	speed "OVH, Singapore             :" "http://speedtest-sgp.apac-tools.ovh/files/100Mb.dat"
+	echo "" | tee -a $log
+}
+
+# 6 location (0.6GB)
+japanspeedtest () {
+	echo "" | tee -a $log
+	echostyle "### 日本地區測速"
+	echo "" | tee -a $log
+	speed "Psychz, JP, Tokyo          :" "http://172.107.231.230/100.mb"
+	speed "Vultr, JP, Tokyo           :" "http://hnd-jp-ping.vultr.com/vultr.com.100MB.bin"
+	speed "DataCamp, JP, Tokyo        :" "http://tyo.download.datapacket.com/100mb.bin"
+	speed "Softlayer, JP, Tokyo       :" "http://speedtest.tok02.softlayer.com/downloads/test100.zip"
+	speed "Linode, JP, Tokyo          :" "http://speedtest.tokyo2.linode.com/100MB-tokyo2.bin"
+	speed "Nexus Bytes, JP, Tokyo     :" "http://lgjp.nexusbytes.com/100MB.test"
+	echo "" | tee -a $log
+}
+
+dryrun () {
+	echo "" | tee -a $log
+	echostyle "### 測試運行"
+	echo "" | tee -a $log
+	speed "CacheFly                   :" "http://cachefly.cachefly.net/100mb.test"
+	speed "國網中心, 新竹市           :" "http://free.nchc.org.tw/parrot/misc/100MB.bin"
+	speed "Psychz, TW, 臺北市         :" "https://lg.tw.psychz.net/200MB.test"
 	echo "" | tee -a $log
 }
 
@@ -395,7 +627,7 @@ cpubench() {
 
 iotest () {
 	echo "" | tee -a $log
-	echostyle "## IO Test"
+	echostyle "### IO測試"
 	echo "" | tee -a $log
 
 	# start testing
@@ -409,7 +641,7 @@ iotest () {
 	fi
 
 	# CPU Speed test
-	printf " CPU Speed:\n" | tee -a $log
+	printf " ## CPU 速度:\n" | tee -a $log
 	printf "    bzip2 %s -" "$writemb_size" | tee -a $log
 	printf "%s\n" "$( cpubench bzip2 $writemb_cpu )" | tee -a $log 
 	printf "   sha256 %s -" "$writemb_size" | tee -a $log
@@ -418,7 +650,7 @@ iotest () {
 	printf "%s\n\n" "$( cpubench md5sum $writemb_cpu )" | tee -a $log
 
 	# Disk test
-	echo " Disk Speed ($writemb_size):" | tee -a $log
+	echo " ## 磁碟速度 ($writemb_size):" | tee -a $log
 	if [[ $writemb != "1" ]]; then
 		io=$( ( dd bs=512K count=$writemb if=/dev/zero of=test; rm -f test ) 2>&1 | awk -F, '{io=$NF} END { print io}' )
 		echo "   I/O Speed  -$io" | tee -a $log
@@ -426,7 +658,7 @@ iotest () {
 		io=$( ( dd bs=512K count=$writemb if=/dev/zero of=test oflag=dsync; rm -f test ) 2>&1 | awk -F, '{io=$NF} END { print io}' )
 		echo "   I/O Direct -$io" | tee -a $log
 	else
-		echo "   Not enough space to test." | tee -a $log
+		echo "   磁碟空間剩餘不足" | tee -a $log
 	fi
 	echo "" | tee -a $log
 
@@ -442,7 +674,7 @@ iotest () {
 	fi
 	[[ -d $benchram ]] || mkdir $benchram
 	mount -t tmpfs -o size=$sbram tmpfs $benchram/
-	printf " RAM Speed (%sB):\n" "$sbram" | tee -a $log
+	printf " ## 記憶體速度 (%sB):\n" "$sbram" | tee -a $log
 	iow1=$( ( dd if=/dev/zero of=$benchram/zero bs=512K count=$sbcount ) 2>&1 | awk -F, '{io=$NF} END { print io}' )
 	ior1=$( ( dd if=$benchram/zero of=$NULL bs=512K count=$sbcount; rm -f test ) 2>&1 | awk -F, '{io=$NF} END { print io}' )
 	iow2=$( ( dd if=/dev/zero of=$benchram/zero bs=512K count=$sbcount ) 2>&1 | awk -F, '{io=$NF} END { print io}' )
@@ -508,30 +740,44 @@ sharetest() {
 
 case $CMD in
 	'-info'|'-information'|'--info'|'--information' )
-		systeminfo;;
+		clear; systeminfo;;
 	'-io'|'-drivespeed'|'--io'|'--drivespeed' )
-		iotest;;
+		clear; iotest;;
 	'-northamercia'|'-na'|'--northamercia'|'--na' )
-		benchinit; northamerciaspeedtest;;
+		clear; benchinit; startedon; northamerciaspeedtest; finishedon;;
 	'-europe'|'-eu'|'--europe'|'--eu' )
-		benchinit; europespeedtest;;
+		clear; benchinit; startedon; europespeedtest; finishedon;;
 	'-exotic'|'--exotic' )
-		benchinit; exoticpeedtest;;
+		clear; benchinit; startedon; exoticpeedtest; finishedon;;
 	'-asia'|'--asia' )
-		benchinit; asiaspeedtest;;
+		clear; benchinit; startedon; asiaspeedtest; finishedon;;
+	'-usa'|'--usa' )
+		clear; benchinit; startedon; usaspeedtest; finishedon;;
+	'-westcoast'|'--westcoast' )
+		clear; benchinit; startedon; usawestcoastspeedtest; finishedon;;
+	'-taiwan'|'--taiwan' )
+		clear; benchinit; startedon; taiwanspeedtest; finishedon;;
+	'-singapore'|'--singapore' )
+		clear; benchinit; startedon; singaporespeedtest; finishedon;;
+	'-japan'|'--japan' )
+		clear; benchinit; startedon; japanspeedtest; finishedon;;
+	'-1gbps'|'--1gbps' )
+		clear; benchinit; startedon; gigabitspeedtest; finishedon;;
+	'-dryrun'|'--dryrun' )
+		clear; benchinit; startedon; dryrun; finishedon;;
 	'-cdn'|'--cdn' )
-		benchinit; cdnspeedtest;;
+		clear; benchinit; cdnspeedtest;;
 	'-b'|'--b' )
-		benchinit; startedon; systeminfo; cdnspeedtest; iotest; finishedon;;
+		clear; benchinit; startedon; systeminfo; cdnspeedtest; iotest; finishedon;;
 	'-a'|'-all'|'-bench'|'--a'|'--all'|'--bench' )
-		benchinit; startedon; systeminfo; cdnspeedtest; northamerciaspeedtest;
+		clear; benchinit; startedon; systeminfo; cdnspeedtest; northamerciaspeedtest;
 		europespeedtest; exoticpeedtest; asiaspeedtest; iotest; finishedon;;
 	'-speed'|'-speedtest'|'-speedcheck'|'--speed'|'--speedtest'|'--speedcheck' )
-		benchinit; speedtestresults;;
+		clear; benchinit; speedtestresults;;
 	'-help'|'--help'|'help' )
-		prms;;
+		clear; prms;;
 	'-about'|'--about'|'about' )
-		about;;
+		clear; about;;
 	*)
 		howto;;
 esac
